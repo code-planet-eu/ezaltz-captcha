@@ -3,6 +3,8 @@ import { createCanvas, CanvasRenderingContext2D, Canvas, Image } from 'canvas'
 import fs from 'fs'
 
 const generateCaptcha = async (req: Request, res: Response) => {
+  const text = (req.query.text as string) || 'EZAltz'
+
   const canvas = createCanvas(600, 300)
   const context = canvas.getContext('2d')
 
@@ -10,19 +12,26 @@ const generateCaptcha = async (req: Request, res: Response) => {
   addBlob(context, canvas)
   generateWatermark(context, canvas)
 
-  context.font = 'bold 85px Arial'
+  context.font = 'bold 80px Arial'
   context.textAlign = 'center'
 
-  const text = 'R4nD0mT3xt'
   const greenColor = '#55FF99'
   const textColor = '#FFF'
   context.globalAlpha = 1
 
-  context.fillStyle = context.createLinearGradient(0, 0, canvas.width, 0)
-  context.fillStyle.addColorStop(0, greenColor)
-  context.fillStyle.addColorStop(1, textColor)
+  text.split('').forEach((letter, index) => {
+    const x = 300 + (index - text.length / 2) * 80
+    const y = Math.random() * 100 + 100
 
-  context.fillText(text, canvas.width / 2, canvas.height / 2)
+    context.fillStyle = index < text.length / 2 ? greenColor : textColor
+    // add shadow
+    context.shadowColor = '#000'
+    context.shadowBlur = 10
+    context.shadowOffsetX = 5
+    context.shadowOffsetY = 5
+
+    context.fillText(letter, x, y)
+  })
 
   const buffer = canvas.toBuffer('image/png')
 
@@ -57,21 +66,21 @@ const generateWatermark = (context: CanvasRenderingContext2D, _canvas: Canvas) =
   const greenColor = '#55FF99'
   const textColor = '#FFF'
 
-  context.font = 'bold 40px Arial'
+  context.font = 'bold 50px Arial'
   context.textBaseline = 'middle'
 
   const numRows = 7 // number of rows
   const rowHeight = 50 // height of each row
-  context.globalAlpha = 0.5
+  context.globalAlpha = 0.8
 
   for (let j = 0; j < numRows; j++) {
     const start = Math.floor(Math.random() * -150)
     for (let i = 0; i < 5; i++) {
       context.fillStyle = greenColor
-      context.fillText(text.slice(0, 2), start + i * 150, j * rowHeight)
+      context.fillText(text.slice(0, 2), start + i * 200, j * rowHeight)
 
       context.fillStyle = textColor
-      context.fillText(text.slice(2), context.measureText(text.slice(0, 2)).width + start + i * 150, j * rowHeight)
+      context.fillText(text.slice(2), context.measureText(text.slice(0, 2)).width + start + i * 200, j * rowHeight)
     }
   }
 }
