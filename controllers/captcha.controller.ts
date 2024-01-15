@@ -1,9 +1,16 @@
 import { Request, Response } from 'express'
 import { createCanvas, CanvasRenderingContext2D, Canvas, Image } from 'canvas'
 import fs from 'fs'
+import crypto from 'crypto'
+
+const secret = process.env.CAPTCHA_SECRET || 'EZAltz'
+const iv = process.env.CAPTCHA_IV || 'EZAltz'
 
 const generateCaptcha = async (req: Request, res: Response) => {
-  const text = (req.query.text as string) || 'EZAltz'
+  const hash = req.query.hash as string
+  const qText = (req.query.text as string) || 'EZAltz'
+
+  const text = hash ? decrypt(hash) : qText
 
   const canvas = createCanvas(600, 300)
   const context = canvas.getContext('2d')
@@ -63,8 +70,10 @@ const addBlob = (context: CanvasRenderingContext2D, canvas: Canvas) => {
 
 const generateWatermark = (context: CanvasRenderingContext2D, _canvas: Canvas) => {
   const text = 'EZAltz'
-  const greenColor = '#55FF99'
-  const textColor = '#FFF'
+  const colors = ['#47BFFF', '#55FF99', '#CE6E6E', '#c9d1d9']
+  const greenColor = colors[Math.floor(Math.random() * colors.length)]
+  const colors2 = ['#FFC0CB', '#FFD700', '#FFA500', '#FF69B4']
+  const textColor = colors2[Math.floor(Math.random() * colors2.length)]
 
   context.font = 'bold 50px Arial'
   context.textBaseline = 'middle'
@@ -83,4 +92,10 @@ const generateWatermark = (context: CanvasRenderingContext2D, _canvas: Canvas) =
       context.fillText(text.slice(2), context.measureText(text.slice(0, 2)).width + start + i * 200, j * rowHeight)
     }
   }
+}
+
+const decrypt = (encryptedText: string) => {
+  const decipher = crypto.createDecipheriv('aes-256-cbc', secret, iv)
+  const decrypted = Buffer.concat([decipher.update(Buffer.from(encryptedText, 'hex')), decipher.final()])
+  return decrypted.toString('utf8')
 }

@@ -1,6 +1,6 @@
 {
   "name": "ezaltz-captcha",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "scripts": {
     "husky:prepare": "husky install && chmod ug+x .husky/*",
     "lint:check": "eslint . --ignore-path .gitignore",
